@@ -241,26 +241,26 @@ class _ChatListState extends State<ChatList>
               return false;
             }
 
-            _controller.duration = Duration.zero;
-            _controller.forward();
-
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              if (mounted) {
-                _isNextPageLoadingNotifier.value = true;
-              }
-            });
-
-            widget.onEndReached!().whenComplete(() {
-              _controller.duration = const Duration(milliseconds: 500);
-              _controller.reverse();
+            if (mounted) {
+              _controller.duration = Duration.zero;
+              _controller.forward();
 
               WidgetsBinding.instance.addPostFrameCallback((_) async {
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) {
-                    _isNextPageLoadingNotifier.value = false;
-                  }
-                });
+                _isNextPageLoadingNotifier.value = true;
               });
+            }
+
+            widget.onEndReached!().whenComplete(() {
+              if (mounted) {
+                _controller.duration = const Duration(milliseconds: 500);
+                _controller.reverse();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    _isNextPageLoadingNotifier.value = false;
+                  });
+                });
+              }
             });
           }
 
@@ -275,20 +275,6 @@ class _ChatListState extends State<ChatList>
               slivers: [
                 if (widget.bottomWidget != null)
                   SliverToBoxAdapter(child: widget.bottomWidget),
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  sliver: SliverToBoxAdapter(
-                    child:
-                        widget.typingIndicatorOptions?.customTypingIndicator ??
-                            TypingIndicator(
-                              bubbleAlignment: widget.bubbleRtlAlignment,
-                              options: widget.typingIndicatorOptions!,
-                              showIndicator: (widget.typingIndicatorOptions!
-                                      .typingUsers.isNotEmpty &&
-                                  !_indicatorOnScrollStatus),
-                            ),
-                  ),
-                ),
                 SliverPadding(
                   padding: const EdgeInsets.only(bottom: 4),
                   sliver: SliverAnimatedList(
@@ -351,100 +337,3 @@ class _ChatListState extends State<ChatList>
         ),
       );
 }
-
-// class AlwaysScrollableFixedPositionScrollPhysics extends ScrollPhysics {
-//   /// Creates scroll physics that always lets the user scroll.
-//   const AlwaysScrollableFixedPositionScrollPhysics({ScrollPhysics? parent})
-//       : super(parent: parent);
-
-//   @override
-//   AlwaysScrollableFixedPositionScrollPhysics applyTo(ScrollPhysics? ancestor) {
-//     return AlwaysScrollableFixedPositionScrollPhysics(
-//         parent: buildParent(ancestor));
-//   }
-
-//   @override
-//   double adjustPositionForNewDimensions({
-//     required ScrollMetrics oldPosition,
-//     required ScrollMetrics newPosition,
-//     required bool isScrolling,
-//     required double velocity,
-//   }) {
-//     final pos = super.adjustPositionForNewDimensions(
-//       oldPosition: oldPosition,
-//       newPosition: newPosition,
-//       isScrolling: isScrolling,
-//       velocity: velocity,
-//     );
-//     if (!isScrolling) {
-//       return newPosition.maxScrollExtent + oldPosition.extentAfter;
-//     } else {
-//       return pos;
-//     }
-//   }
-
-//   @override
-//   bool shouldAcceptUserOffset(ScrollMetrics position) => true;
-// }
-
-// class PositionRetainedScrollPhysics extends ScrollPhysics {
-//   final bool shouldRetain;
-//   const PositionRetainedScrollPhysics({super.parent, this.shouldRetain = true});
-
-//   @override
-//   PositionRetainedScrollPhysics applyTo(ScrollPhysics? ancestor) {
-//     return PositionRetainedScrollPhysics(
-//       parent: buildParent(ancestor),
-//       shouldRetain: shouldRetain,
-//     );
-//   }
-
-//   @override
-//   double adjustPositionForNewDimensions({
-//     required ScrollMetrics oldPosition,
-//     required ScrollMetrics newPosition,
-//     required bool isScrolling,
-//     required double velocity,
-//   }) {
-//     final position = super.adjustPositionForNewDimensions(
-//       oldPosition: oldPosition,
-//       newPosition: newPosition,
-//       isScrolling: isScrolling,
-//       velocity: velocity,
-//     );
-
-//     final diff = newPosition.maxScrollExtent - oldPosition.extentAfter;
-
-//     if (oldPosition.pixels > oldPosition.minScrollExtent &&
-//         diff > 0 &&
-//         shouldRetain &&
-//         !isScrolling) {
-//       return position + diff;
-//     } else {
-//       return position;
-//     }
-//   }
-// }
-
-// class CustomScrollPhysics extends ScrollPhysics {
-//   const CustomScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
-
-//   @override
-//   CustomScrollPhysics applyTo(ScrollPhysics? ancestor) {
-//     return CustomScrollPhysics(parent: buildParent(ancestor));
-//   }
-
-//   @override
-//   double applyBoundaryConditions(ScrollMetrics position, double value) {
-//     final double minScrollExtent = position.minScrollExtent;
-//     final double maxScrollExtent = position.maxScrollExtent;
-
-//     // Prevent scrolling beyond the minimum and maximum scroll extents
-//     // if(isScro)
-//     if (value < minScrollExtent) {
-//       return minScrollExtent;
-//     }
-//     if (value > maxScrollExtent) return maxScrollExtent;
-//     return value;
-//   }
-// }
